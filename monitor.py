@@ -41,7 +41,7 @@ class Monitor:
 
     def check_time_batch(self, top_delegates):
         data = top_delegates
-        issuse_delegates = []
+        issue_delegates = []
         # for delegate in data['delegates'][1:3]:
         for delegate in data['delegates']:
             pubkey = delegate['publicKey']
@@ -51,30 +51,34 @@ class Monitor:
                     last_block_time = data['blocks'][0]['timestamp']    # 这个是自asch主链创世块生成时间以来经历的秒数
                     difftime = self.check_time(last_block_time)
                     if difftime > 50*60:
-                        # res = {'username': delegate['username'],
-                        #        'rate': delegate['rate'],
-                        #        'height': data['blocks'][0]['height'],
-                        #        'behind_seconds': difftime}
                         res = [delegate['username'], str(delegate['rate']), str(data['blocks'][0]['height']),
-                               str(round(difftime/60/60,1))]
-                        issuse_delegates.append(res)
+                               str(round(difftime/60/60, 2))]
+                        issue_delegates.append(res)
                 else:
-                    print "api返回成功但貌似没有数据", data
-        return issuse_delegates
+                    print "warings:api返回成功但貌似没有数据", data
+        return issue_delegates
 
     def check_balance(self, top_delegates):
         data = top_delegates
+        del_150k_xas = open('config/delegate_150k_xas.txt', 'r').readlines()
         nsf = []    # 余额不足5万XAS(not sufficient funds)受托人账户列表
         if data['success']:
             for delegate in data['delegates']:
-                if delegate['username'].find('asch_g') < 0:
-                    if delegate['balance'] < 50000 * 100000000:
-                        # res = {'username': delegate['username'], 'balance': delegate['balance']/10**8}
-                        res = [delegate['username'], str(delegate['balance']/10**8)]
-                        nsf.append(res)
+                name = delegate['username'].strip()
+                balance = delegate['balance']/10**8
+                if name.find('asch_g') < 0:
+                    if name+'\n' in del_150k_xas:    # 需要150k的受托人
+                        # print name, balance
+                        if balance < 15*10000:
+                            res = [name, str(balance)]
+                            nsf.append(res)
+                    else:                           # 需要50k的受托人
+                        if balance < 5*10000:
+                            res = [name, str(balance)]
+                            nsf.append(res)
         return nsf
 
-    def send_main(self, content):
+    def send_mail(self, content):
         sub = 'asch_monitor'
         return send_mail(mailto_list, sub, content)
 
@@ -86,18 +90,14 @@ def main():
     logfile = "logs/%s_%s.log" % (logname, now)
     mp = MyPrint(logfile)
     monitor = Monitor()
-    # print "pubkeys:", monitor.get_top_101()
     top_delegates = monitor.get_top_101()
     check_balance = monitor.check_balance(top_delegates)
     check_block_produce = monitor.check_time_batch(top_delegates)
 
     time_end = time.time()
     time_excute = time_end - time_start
-    # print "本次执行时间(秒):", time_excute
-    if len(check_block_produce) > 0:
-        # content = {"check_balance": check_balance,
-        #            "check_block_produce": check_block_produce,
-        #            "time_excute_seconds": int(time_excute)}
+
+    if len(check_block_produce) > 0:        # 丢块的受托人
         mp.my_print(["The following delegates are missing block:"])
         mp.my_print(['username', 'rate', 'height', 'behinds_hours'])
         for i in check_block_produce:
@@ -106,7 +106,7 @@ def main():
         mp.my_print(["There is no delegate of 'top 101' missing block."])
     mp.my_print([''])
 
-    if len(check_balance) > 0:
+    if len(check_balance) > 0:              # 余额不足的受托人
         mp.my_print(['The fllowing delegates have not sufficient funds:'])
         mp.my_print(['username', 'balance'])
         for i in check_balance:
@@ -118,14 +118,12 @@ def main():
     mp.my_print(['time_excute_seconds:', str(int(time_excute))])
 
     if len(check_block_produce) > 0 or len(check_balance) > 0:
-    	f = open(logfile, 'r')
-    	content = ''
-    	lines = f.readlines()
-    	for i in lines:
-    	    content += i
-    	# print "content:", content
-    	res = monitor.send_main(str(content))
-    	mp.my_print(["email发送状态：", str(res)])
+        content = ''
+        lines = open(logfile, 'r').readlines()
+        for i in lines:
+            content += i
+        res = monitor.send_mail(content)
+        mp.my_print(["email发送状态：", str(res)])
 
 if __name__ == "__main__":
     main()
