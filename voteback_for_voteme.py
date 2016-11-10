@@ -108,6 +108,11 @@ if __name__ == "__main__":
     pwd = raw_input("please input your asch's password:")
     second_pwd = raw_input("please input your asch's second password，if have not please enter directly:")
     vote = Vote(pwd, second_pwd)
+    delegates = vote.voteback_for_voteme()
+    print 'vote_add:', vote.vote_all(delegates)
+    delegates = vote.cancel_for_novoteme()
+    print 'vote_cancel:', vote.vote_all(delegates)
+    '''
     while True:
         # print 'get_vote_me', vote.get_vote_me()
         # print 'get_me_vote', vote.get_me_vote()
@@ -117,4 +122,5 @@ if __name__ == "__main__":
         delegates = vote.cancel_for_novoteme()
         print 'vote_cancel', vote.vote_all(delegates)
         time.sleep(100)
+        '''
 
