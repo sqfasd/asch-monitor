@@ -12,8 +12,8 @@ class Vote:
     投票相关api返回数据处理
     """
     def __init__(self, password, second_password):
-        self.pwd = password
-        self.second_pwd = second_password
+        self.pwd = password.strip()
+        self.second_pwd = second_password.strip()
         self.account = Accounts()
         self.delegate = Delegates()
         self.address, self.publickey = self.login()
@@ -95,15 +95,11 @@ class Vote:
         """
         if len(delegates_list) > 0:
             if len(delegates_list) <= 33:
-                if len(self.second_pwd) == 0:
-                    payload = {'secret': self.pwd, 'delegates': delegates_list}
-                else:
-                    payload = {'secret': self.pwd, 'delegates': delegates_list, 'secondSecret': self.second_pwd}
+                payload = {'secret': self.pwd, 'delegates': delegates_list}
             else:
-                if len(self.second_pwd) == 0:
-                    payload = {'secret': self.pwd, 'delegates': delegates_list[0:32]}
-                else:
-                    payload = {'secret': self.pwd, 'delegates': delegates_list[0:32], 'secondSecret': self.second_pwd}
+                payload = {'secret': self.pwd, 'delegates': delegates_list[0:32]}
+            if len(self.second_pwd) > 0:
+                payload['secondSecret'] = self.second_pwd
             return self.account.vote(payload)
         else:
             return []
