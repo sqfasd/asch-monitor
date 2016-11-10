@@ -11,8 +11,9 @@ class Vote:
     """
     投票相关api返回数据处理
     """
-    def __init__(self, password):
+    def __init__(self, password, second_password):
         self.pwd = password
+        self.second_pwd = second_password
         self.account = Accounts()
         self.delegate = Delegates()
         self.address, self.publickey = self.login()
@@ -94,16 +95,23 @@ class Vote:
         """
         if len(delegates_list) > 0:
             if len(delegates_list) <= 33:
-                payload = {'secret': self.pwd, 'delegates': delegates_list}
+                if len(self.second_pwd) == 0:
+                    payload = {'secret': self.pwd, 'delegates': delegates_list}
+                else:
+                    payload = {'secret': self.pwd, 'delegates': delegates_list, 'secondSecret': self.second_pwd}
             else:
-                payload = {'secret': self.pwd, 'delegates': delegates_list[0:32]}
+                if len(self.second_pwd) == 0:
+                    payload = {'secret': self.pwd, 'delegates': delegates_list[0:32]}
+                else:
+                    payload = {'secret': self.pwd, 'delegates': delegates_list[0:32], 'secondSecret': self.second_pwd}
             return self.account.vote(payload)
         else:
             return []
 
 if __name__ == "__main__":
     pwd = raw_input("please input your asch's password:")
-    vote = Vote(pwd)
+    second_pwd = raw_input("please input your asch's second password，if have not please enter directly:")
+    vote = Vote(pwd, second_pwd)
     while True:
         # print 'get_vote_me', vote.get_vote_me()
         # print 'get_me_vote', vote.get_me_vote()
