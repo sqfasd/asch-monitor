@@ -14,7 +14,7 @@ class HttpApi:
         self.baseurl = 'http://' + self.ip + ':' + str(self.port)
         self.headers = {'content-type': 'application/json'}
 
-    def execute(self, method, api, payload):
+    def execute(self, method, api, payload=None):
         url = self.baseurl + api
         if method == 'get':
             return self.get(url, payload)
@@ -23,8 +23,11 @@ class HttpApi:
         elif method == 'put':
             return self.put(url, payload)
 
-    def get(self, url, payload):
-        r = requests.get(url, params=payload)
+    def get(self, url, payload=None):
+        if payload is None:
+            r = requests.get(url)
+        else:
+            r = requests.get(url, params=payload)
         # return r.url
         return json.loads(r.text)
 

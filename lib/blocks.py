@@ -12,7 +12,7 @@ class Blocks:
     def __init__(self):
         self.api = HttpApi()
 
-    def execute(self, method, api, payload):
+    def execute(self, method, api, payload=None):
         return self.api.execute(method, api, payload)
 
     def get_blocks(self, payload):
@@ -21,6 +21,14 @@ class Blocks:
         """
         api = '/api/blocks'
         return self.execute('get', api, payload)
+
+    def get_height(self):
+        """
+        获取blockchain高度
+        :return:block chain height
+        """
+        api = '/api/blocks/getHeight'
+        return self.execute('get', api)
 
 
 if __name__ == "__main__":
