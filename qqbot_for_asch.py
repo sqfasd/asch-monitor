@@ -4,9 +4,14 @@
 from qqbot import QQBot
 from lib.blocks import Blocks
 from lib.delegates import Delegates
+from monitor import Monitor
 import requests
 import json
 
+
+# class MiniMonitor(Monitor):
+#     def latest_time(self):
+#
 
 class AschQQBot(QQBot):
     def onPollComplete(self, msgType, from_uin, buddy_uin, message):
@@ -39,7 +44,18 @@ class AschQQBot(QQBot):
             dres = Delegates().get_info(payload)
             if dres['success']:
                 delegate = dres['delegate']
-                res = [delegate_name, delegate['rate'], delegate['productivity'], delegate['rewards']/10**8]
+                pubkey = delegate['publicKey']
+                mt = Monitor()
+                data = mt.check_block(pubkey)
+                if data['success']:
+                    if len(data['blocks']) > 0:
+                        last_block_time = data['blocks'][0]['timestamp']
+                        # 这个是自asch主链创世块生成时间以来经历的秒数
+                        difftime = mt.check_time(last_block_time)/60
+                else:
+                    print "warings:api返回成功但貌似没有数据", data
+                res = [delegate_name, delegate['rate'], delegate['productivity'], delegate['rewards']/10**8,
+                       str(difftime)+' minutes ago']
             else:
                 res = '受托人'+delegate_name+'不存在'
         else:
