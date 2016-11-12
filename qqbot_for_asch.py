@@ -83,10 +83,10 @@ class AschQQBot(QQBot):
     def usage(self):
         usage = '''
          Asch小妹目前可以实现的功能：
-         1.price，查询asch的价格
-         2.delegate 受托人名字，查询受托人的出块情况
-         3.getheight，查询当前区块链高度
-         4.info，asch相关介绍，如官网、github等
+         1、price，查询asch的价格
+         2、delegate 受托人名字，查询受托人的出块情况
+         3、getheight，查询当前区块链高度
+         4、info，asch相关介绍，如官网、github等
 
          举例：@Asch小妹 price，可以获取到asch当前的价格
          广告位：没事了可以给zhenxi投票玩~ ~
