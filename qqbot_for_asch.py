@@ -38,7 +38,7 @@ class AschQQBot(QQBot):
 
     def delegate(self, message):
         m_li = message.split()
-		# ['Asch小妹','delegate','zhenxi']
+        # ['Asch小妹','delegate','zhenxi']
         if len(m_li) == 3:
             delegate_name = m_li[2].strip()
             payload = {'username': delegate_name}
@@ -68,6 +68,8 @@ class AschQQBot(QQBot):
         res = Blocks().get_height()
         if res['success']:
             height = res['height']
+        else:
+            height = None
         return '当前区块高度为：' + str(height)
 
     def info(self):
