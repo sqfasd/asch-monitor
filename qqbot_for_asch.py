@@ -34,7 +34,7 @@ class AschQQBot(QQBot):
     def price(self):
         url = 'http://www.jubi.com/api/v1/ticker?coin=xas'
         res = json.loads(requests.get(url).text)
-        res = "\t".join(['jubi.com', "最新成交价："+ str(round(float(res['last']), 3))+'CNY',"24小时成交量："+
+        res = "\n".join(['jubi.com', "最新成交价："+ str(round(float(res['last']), 3))+'CNY',"24小时成交量："+
                          str(int(res['vol']))+'XAS'])
         return res
 
