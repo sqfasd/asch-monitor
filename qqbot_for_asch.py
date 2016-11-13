@@ -35,7 +35,7 @@ class AschQQBot(QQBot):
         url = 'http://www.jubi.com/api/v1/ticker?coin=xas'
         res = json.loads(requests.get(url).text)
         res = "\n".join(['jubi.com', "最新成交价："+ str(round(float(res['last']), 3))+'CNY',"24小时成交量："+
-                         str(int(res['vol']))+'XAS'])
+                         str(int(res['vol']))+'XAS'], '请给受托人：zhenxi投票，谢谢')
         return res
 
     def delegate(self, message):
