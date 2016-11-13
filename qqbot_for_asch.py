@@ -4,9 +4,14 @@
 from qqbot import QQBot
 from lib.blocks import Blocks
 from lib.delegates import Delegates
+from monitor import Monitor
 import requests
 import json
 
+
+# class MiniMonitor(Monitor):
+#     def latest_time(self):
+#
 
 class AschQQBot(QQBot):
     def onPollComplete(self, msgType, from_uin, buddy_uin, message):
@@ -33,13 +38,26 @@ class AschQQBot(QQBot):
 
     def delegate(self, message):
         m_li = message.split()
+				# ['Asch小妹','delegate','zhenxi']
         if len(m_li) == 3:
             delegate_name = m_li[2].strip()
             payload = {'username': delegate_name}
             dres = Delegates().get_info(payload)
             if dres['success']:
                 delegate = dres['delegate']
-                res = [delegate_name, delegate['rate'], delegate['productivity'], delegate['rewards']/10**8]
+                pubkey = delegate['publicKey']
+                mt = Monitor()
+                data = mt.check_block(pubkey)
+                if data['success']:
+                    if len(data['blocks']) > 0:
+                        last_block_time = data['blocks'][0]['timestamp']    
+                        # 这个是自asch主链创世块生成时间以来经历的秒数
+                        difftime = str(mt.check_time(last_block_time)/60) +' minutes ago'
+                    else:
+                        #print "warings:api返回成功但貌似没有数据 or not top101", data
+												difftime = 'not top101,not produce block'
+                res = [delegate_name, delegate['rate'], delegate['productivity'], delegate['rewards']/10**8, difftime]
+										
             else:
                 res = '受托人'+delegate_name+'不存在'
         else:
@@ -67,10 +85,10 @@ class AschQQBot(QQBot):
     def usage(self):
         usage = '''
          Asch小妹目前可以实现的功能：
-         1.price，查询asch的价格
-         2.delegate 受托人名字，查询受托人的出块情况
-         3.getheight，查询当前区块链高度
-         4.info，asch相关介绍，如官网、github等
+         1、price，查询asch的价格
+         2、delegate 受托人名字，查询受托人的出块情况
+         3、getheight，查询当前区块链高度
+         4、info，asch相关介绍，如官网、github等
 
          举例：@Asch小妹 price，可以获取到asch当前的价格
          广告位：没事了可以给zhenxi投票玩~ ~
@@ -85,3 +103,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
