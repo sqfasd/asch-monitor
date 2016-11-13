@@ -24,8 +24,10 @@ class AschQQBot(QQBot):
                 res = self.getheight()
             elif message == '@Asch小妹 info':
                 res = self.info()
-            else:
+            elif message == "@Asch小妹 help":
                 res = self.usage()
+            else:
+                res = ["face",33]
             print res
             self.send(msgType, from_uin, res)
 
