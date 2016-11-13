@@ -55,7 +55,7 @@ class AschQQBot(QQBot):
                         difftime = str(mt.check_time(last_block_time)/60) +' minutes ago'
                     else:
                         #print "warings:api返回成功但貌似没有数据 or not top101", data
-						difftime = 'not top101,not produce block'
+                        difftime = 'not top101,not produce block'
                 res = [delegate_name, delegate['rate'], delegate['productivity'], delegate['rewards']/10**8, difftime]
 										
             else:
