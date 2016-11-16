@@ -98,12 +98,12 @@ def main():
     time_excute = time_end - time_start
 
     if len(check_block_produce) > 0:        # 丢块的受托人
-        mp.my_print(["The following delegates are missing block:"])
+        mp.my_print(["The following delegates are not produce block:"])
         mp.my_print(['username', 'rate', 'height', 'behinds_hours'])
         for i in check_block_produce:
             mp.my_print(i)
     else:
-        mp.my_print(["There is no delegate of 'top 101' missing block."])
+        mp.my_print(["All delegates of 'top 101' are producing block succesfully."])
     mp.my_print([''])
 
     if len(check_balance) > 0:              # 余额不足的受托人
@@ -127,3 +127,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
