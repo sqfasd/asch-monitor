@@ -14,6 +14,7 @@ import json
 #
 
 class AschQQBot(QQBot):
+    dsp = '请给受托人zhenxi投票，非常感谢。本广告位租赁价格：100XAS/天'
     def onPollComplete(self, msgType, from_uin, buddy_uin, message):
         if message.find('@Asch小妹') == 0:
             if message == '@Asch小妹 price':
@@ -34,8 +35,8 @@ class AschQQBot(QQBot):
     def price(self):
         url = 'http://www.jubi.com/api/v1/ticker?coin=xas'
         res = json.loads(requests.get(url).text)
-        res = "\n".join(['jubi.com', "最新成交价："+ str(round(float(res['last']), 3))+'CNY',"24小时成交量："+
-                         str(int(res['vol']))+'XAS', '请给受托人：zhenxi投票，谢谢'])
+        res = "\n".join(['jubi.com', "最新成交价："+ str(round(float(res['last']), 3))+' CNY',"24小时成交："+
+                         str(int(res['vol']))+' XAS', self.dsp])
         return res
 
     def delegate(self, message):
@@ -54,14 +55,16 @@ class AschQQBot(QQBot):
                     if len(data['blocks']) > 0:
                         last_block_time = data['blocks'][0]['timestamp']    
                         # 这个是自asch主链创世块生成时间以来经历的秒数
-                        difftime = str(mt.check_time(last_block_time)/60) +' minutes ago'
+                        difftime = str(mt.check_time(last_block_time)/60) +'分钟之前'
                     else:
                         #print "warings:api返回成功但貌似没有数据 or not top101", data
-                        difftime = 'not top101,not produce block'
-                res = [delegate_name, delegate['rate'], delegate['productivity'], delegate['rewards']/10**8, difftime]
+                        difftime = '非前101名，不产块'
+                res = ['受托人：'+delegate_name, '排名：'+str(delegate['rate']), '在线率：'+str(delegate['productivity']), '锻造总额：'+str(delegate['rewards']/10**8)+' XAS', '最后出块时间：'+difftime]
 										
             else:
-                res = '受托人'+delegate_name+'不存在'
+                res = ['受托人'+delegate_name+'不存在']
+	    res.append(self.dsp)
+	    res = '\n'.join(res)
         else:
             res = self.usage()
         return str(res)
@@ -93,10 +96,11 @@ class AschQQBot(QQBot):
          2、delegate 受托人名字，查询受托人的出块情况
          3、getheight，查询当前区块链高度
          4、info，asch相关介绍，如官网、github等
+         5、help，查看Asch小妹的功能列表
 
-         举例：@Asch小妹 price，可以获取到asch当前的价格
-         广告位：没事了可以给zhenxi投票玩~ ~
+         举例：@Asch小妹 price，可以获取到XAS当前的价格
          '''
+	usage = usage+'\t'+self.dsp
         return usage
 
 
