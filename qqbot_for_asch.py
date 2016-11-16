@@ -32,12 +32,31 @@ class AschQQBot(QQBot):
             print res
             self.send(msgType, from_uin, res)
 
+    def get_price(self,host,coin):
+        url = host+'/api/v1/ticker?coin='+coin
+        res = json.loads(requests.get(url,verify=False).text)
+        # https not verify CA
+        return res 
+            
     def price(self):
-        url = 'http://www.jubi.com/api/v1/ticker?coin=xas'
-        res = json.loads(requests.get(url).text)
-        res = "\n".join(['jubi.com', "最新成交价："+ str(round(float(res['last']), 3))+' CNY',"24小时成交："+
-                         str(int(res['vol']))+' XAS', self.dsp])
-        return res
+        btc_price = float(self.get_price('https://jubi.com','btc')['last'])
+        res_all = []
+        platforms = [('https://btcbox.com','BTC'),('http://jubi.com','CNY')]
+        for i in platforms:   
+            host,unit = i 
+            res = self.get_price(host,'xas')
+            if unit == 'CNY':
+                price = str(round(float(res['last']), 3))+' CNY'
+            elif unit == 'BTC':
+                price_btc = res['last']
+                price_cny = round(float(price_btc)*btc_price,3)
+                price = str(price_btc) + ' BTC(' + str(price_cny) + ' CNY)'
+            res  = [host, "最新成交价："+ price,"24小时成交："+str(int(res['vol']))+' XAS']
+            res_all.extend(res)
+        res_all = "\n".join(res_all)
+	res_all = res_all + "\n\n" + self.dsp
+        return res_all
+
 
     def delegate(self, message):
         m_li = message.split()
