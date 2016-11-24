@@ -15,6 +15,8 @@ import json
 
 class AschQQBot(QQBot):
     dsp = '请给受托人zhenxi投票，非常感谢。本广告位租赁价格：100XAS/天'
+    dsp = '广告：币视界官网www.biviews.com'
+
     def onPollComplete(self, msgType, from_uin, buddy_uin, message):
         if message.find('@Asch小妹') == 0:
             if message == '@Asch小妹 price':
@@ -51,7 +53,7 @@ class AschQQBot(QQBot):
                 price_btc = res['last']
                 price_cny = round(float(price_btc)*btc_price,3)
                 price = str(price_btc) + ' BTC(' + str(price_cny) + ' CNY)'
-            res  = [host, "最新成交价："+ price,"24小时成交："+str(int(res['vol']))+' XAS']
+            res  = [host, "最新成交价："+ price,"24小时成交："+str(int(res['vol'])/10000)+' 万XAS']
             res_all.extend(res)
         res_all = "\n".join(res_all)
 	res_all = res_all + "\n\n" + self.dsp
@@ -78,7 +80,7 @@ class AschQQBot(QQBot):
                     else:
                         #print "warings:api返回成功但貌似没有数据 or not top101", data
                         difftime = '非前101名，不产块'
-                res = ['受托人：'+delegate_name, '排名：'+str(delegate['rate']), '在线率：'+str(delegate['productivity']), '锻造总额：'+str(delegate['rewards']/10**8)+' XAS', '最后出块时间：'+difftime]
+                res = ['受托人：'+delegate_name, '排名：'+str(delegate['rate']), '生产率：'+str(delegate['productivity']), '锻造总额：'+str(delegate['rewards']/10**8)+' XAS', '最后出块时间：'+difftime]
 										
             else:
                 res = ['受托人'+delegate_name+'不存在']
