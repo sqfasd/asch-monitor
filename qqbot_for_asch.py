@@ -53,7 +53,7 @@ class AschQQBot(QQBot):
                 price_btc = res['last']
                 price_cny = round(float(price_btc)*btc_price,3)
                 price = str(price_btc) + ' BTC(' + str(price_cny) + ' CNY)'
-            res  = [host, "最新成交价："+ price,"24小时成交："+str(int(res['vol']))+' XAS']
+            res  = [host, "最新成交价："+ price,"24小时成交："+str(int(res['vol'])/10000)+' 万XAS']
             res_all.extend(res)
         res_all = "\n".join(res_all)
 	res_all = res_all + "\n\n" + self.dsp
