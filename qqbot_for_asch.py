@@ -9,15 +9,13 @@ import requests
 import json
 
 
-# class MiniMonitor(Monitor):
-#     def latest_time(self):
-#
-
 class AschQQBot(QQBot):
     dsp = '请给受托人zhenxi投票，非常感谢。本广告位租赁价格：100XAS/天'
-    dsp = '广告：币视界官网www.biviews.com'
 
-    def onPollComplete(self, msgType, from_uin, buddy_uin, message):
+    def __init__(self):
+        pass
+
+    def onPollComplete(self, msgtype, from_uin, buddy_uin, message):
         if message.find('@Asch小妹') == 0:
             if message == '@Asch小妹 price':
                 res = self.price()
@@ -30,35 +28,35 @@ class AschQQBot(QQBot):
             elif message == "@Asch小妹 help":
                 res = self.usage()
             else:
-                res = ["face",33]
+                res = ["face", 33]
             print res
-            self.send(msgType, from_uin, res)
+            self.send(msgtype, from_uin, res)
 
-    def get_price(self,host,coin):
-        url = host+'/api/v1/ticker?coin='+coin
-        res = json.loads(requests.get(url,verify=False).text)
+    @staticmethod
+    def get_price(host, coin):
+        url = host + '/api/v1/ticker?coin=' + coin
+        res = json.loads(requests.get(url, verify=False).text)
         # https not verify CA
-        return res 
-            
+        return res
+
     def price(self):
-        btc_price = float(self.get_price('https://jubi.com','btc')['last'])
+        btc_price = float(self.get_price('https://jubi.com', 'btc')['last'])
         res_all = []
-        platforms = [('https://btcbox.com','BTC'),('http://jubi.com','CNY')]
-        for i in platforms:   
-            host,unit = i 
-            res = self.get_price(host,'xas')
+        platforms = [('https://btcbox.com', 'BTC'), ('http://jubi.com', 'CNY')]
+        for i in platforms:
+            host, unit = i
+            res = self.get_price(host, 'xas')
             if unit == 'CNY':
-                price = str(round(float(res['last']), 3))+' CNY'
+                price = str(round(float(res['last']), 3)) + ' CNY'
             elif unit == 'BTC':
                 price_btc = res['last']
-                price_cny = round(float(price_btc)*btc_price,3)
-                price = str(price_btc) + ' BTC(' + str(price_cny) + ' CNY)'
-            res  = [host, "最新成交价："+ price,"24小时成交："+str(int(res['vol'])/10000)+' 万XAS']
+                price_cny = round(float(price_btc) * btc_price, 3)
+                price = str(price_btc) + ' BTC(' + str(price_cny) + 'CNY)'
+            res = [host, "最新成交价：" + price, "24小时成交：" + str(int(res['vol']) / 10000) + '万XAS']
             res_all.extend(res)
         res_all = "\n".join(res_all)
-	res_all = res_all + "\n\n" + self.dsp
+        res_all = res_all + "\n\n" + self.dsp
         return res_all
-
 
     def delegate(self, message):
         m_li = message.split()
@@ -74,23 +72,25 @@ class AschQQBot(QQBot):
                 data = mt.check_block(pubkey)
                 if data['success']:
                     if len(data['blocks']) > 0:
-                        last_block_time = data['blocks'][0]['timestamp']    
+                        last_block_time = data['blocks'][0]['timestamp']
                         # 这个是自asch主链创世块生成时间以来经历的秒数
-                        difftime = str(mt.check_time(last_block_time)/60) +'分钟之前'
+                        difftime = str(mt.check_time(last_block_time) / 60) + '分钟之前'
                     else:
-                        #print "warings:api返回成功但貌似没有数据 or not top101", data
+                        # print "warings:api返回成功但貌似没有数据 or not top101", data
                         difftime = '非前101名，不产块'
-                res = ['受托人：'+delegate_name, '排名：'+str(delegate['rate']), '生产率：'+str(delegate['productivity']), '锻造总额：'+str(delegate['rewards']/10**8)+' XAS', '最后出块时间：'+difftime]
-										
+                res = ['受托人：' + delegate_name, '排名：' + str(delegate['rate']), '生产率：' +
+                       str(delegate['productivity']), '锻造总额：' + str(delegate['rewards'] / 10 ** 8) + ' XAS',
+                       '最后出块时间：' + difftime]
             else:
-                res = ['受托人'+delegate_name+'不存在']
-	    res.append(self.dsp)
-	    res = '\n'.join(res)
+                res = ['受托人' + delegate_name + '不存在']
+            res.append(self.dsp)
+            res = '\n'.join(res)
         else:
             res = self.usage()
         return str(res)
 
-    def getheight(self):
+    @staticmethod
+    def getheight():
         res = Blocks().get_height()
         if res['success']:
             height = res['height']
@@ -98,7 +98,8 @@ class AschQQBot(QQBot):
             height = None
         return '当前区块高度为：' + str(height)
 
-    def info(self):
+    @staticmethod
+    def info():
         info = '''
         官网：www.asch.so
         白皮书：www.asch.so/asch-whitepaper.pdf
@@ -110,7 +111,8 @@ class AschQQBot(QQBot):
         '''
         return info
 
-    def usage(self):
+    @staticmethod
+    def usage():
         usage = '''
          Asch小妹目前可以实现的功能：
          1、price，查询asch的价格
@@ -121,7 +123,7 @@ class AschQQBot(QQBot):
 
          举例：@Asch小妹 price，可以获取到XAS当前的价格
          '''
-	usage = usage+'\t'+self.dsp
+        usage = usage + '\t' + AschQQBot.dsp
         return usage
 
 
@@ -130,6 +132,6 @@ def main():
     myqqbot.Login()
     myqqbot.Run()
 
+
 if __name__ == "__main__":
     main()
-
