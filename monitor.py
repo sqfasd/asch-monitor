@@ -138,7 +138,7 @@ def main():
     mp = MyPrint(logfile)
     monitor = Monitor()
     check_top100_balance = monitor.check_peers()
-    print check_top100_balance
+    # print check_top100_balance
     top_delegates = monitor.get_top_101()
     check_balance = monitor.check_balance(top_delegates)
     check_block_produce = monitor.check_time_batch(top_delegates)
