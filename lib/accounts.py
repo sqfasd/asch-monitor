@@ -15,6 +15,7 @@ class Accounts:
     def open(self, payload):
         """
         登陆
+        :param
         """
         api = '/api/accounts/open/'
         return self.api.execute('post', api, payload)
@@ -24,6 +25,14 @@ class Accounts:
         查询账户信息
         """
         api = '/api/accounts'
+        return self.api.execute('get', api, payload)
+
+    def balance(self, payload):
+        """
+        :param payload:
+        :return:
+        """
+        api = '/api/accounts/getBalance'
         return self.api.execute('get', api, payload)
 
     def vote(self, payload):
@@ -38,6 +47,14 @@ class Accounts:
         该账户为谁投了票
         """
         api = '/api/accounts/delegates'
+        return self.api.execute('get', api, payload)
+
+    def top(self):
+        """
+        获取top账户
+        :return:
+        """
+        api = '/api/accounts/top'
         return self.api.execute('get', api, payload)
 
 
