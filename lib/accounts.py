@@ -49,7 +49,7 @@ class Accounts:
         api = '/api/accounts/delegates'
         return self.api.execute('get', api, payload)
 
-    def top(self):
+    def top(self, payload):
         """
         获取top账户
         :return:

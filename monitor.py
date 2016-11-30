@@ -2,9 +2,13 @@
 # coding=utf8
 
 import time
+import random
+import requests
+import json
 from lib.accounts import Accounts
 from lib.delegates import Delegates
 from lib.blocks import Blocks
+from lib.peers import Peers
 from lib.mail import *
 from lib.format import MyPrint
 
@@ -12,13 +16,53 @@ from lib.format import MyPrint
 class Monitor:
     """
     1.监控top101受托人的丢块信息，超过50分钟未出块视为丢块	done
-    2.监控top101受托人的XAS余额，不足50000的要报警,已剔除官方账号asch_g done
-    3.监控top101受托人节点记录的账户余额top100的信息是否一致（随机抽取2个节点在整点的时候进行对比，时间对10取模为0）
+    2.监控top101受托人的XAS余额，不足50000或者150000的要报警,已剔除官方账号asch_g done
+    3.监控top101受托人节点记录的账户余额top100的信息是否一致（随机抽取2个节点在整点的时候进行对比，时间对10取模为0）done
     """
     def __init__(self):
         self.delegate = Delegates()
         self.account = Accounts()
         self.blocks = Blocks()
+        self.peers = Peers()
+
+    def get_peers(self):
+        rs = self.peers.peers('')
+        if rs['success']:
+            res = rs['peers']
+        else:
+            res = None
+        return res
+
+    def get_top100_balance(self):
+        res = self.account.top('')
+        return res
+
+    def check_peers(self):
+        peers = self.get_peers()
+        if peers is not None:
+            cnt = len(peers)
+            num = random.randint(0, cnt-1)
+            ip = peers[num]['ip']
+            port = str(peers[num]['port'])
+            url = 'http://' + ip + ':' + port + '/api/accounts/top'
+            rs = json.loads(requests.get(url).text)
+            # print 'rs is:', rs
+            rs_official = self.get_top100_balance()
+            # print 'rs_official is:', rs_official
+            res = []
+            if rs['success'] and rs_official['success']:
+                for i in range(0, 99):
+                    balance = rs['accounts'][i]['balance']
+                    balance_official = rs_official['accounts'][i]['balance']
+                    # print 'balance:', balance, 'balance_official', balance_official
+                    if balance != balance_official:
+                        res.append([ip, rs['accounts'][i]['address'], str(balance)+'XAS'])
+                        res.append(['mainnet.asch.so', rs_official['accounts'][i]['address'], str(balance_official) +
+                                    'XAS'])
+                        break
+                if len(res) == 0:
+                    res.append("The top 100 accounts's balance of "+ip+":"+str(port)+" is same with mainnet.asch.so.")
+            return res
 
     def get_top_101(self):
         payload = {'limit': 100,
@@ -33,7 +77,8 @@ class Monitor:
                    }
         return self.blocks.get_blocks(payload)
 
-    def check_time(self, last_block_time):
+    @staticmethod
+    def check_time(last_block_time):
         now = int(time.time()) - 1467057600
         # UTC+8时区-asch创世块生成时间，即asch纪元元年0点(2016/6/28 4:0:0，js时间为UTC(2016, 5, 27, 20, 0, 0, 0) )
         difftime = now - last_block_time
@@ -58,7 +103,8 @@ class Monitor:
                     print "warings:api返回成功但貌似没有数据", data
         return issue_delegates
 
-    def check_balance(self, top_delegates):
+    @staticmethod
+    def check_balance(top_delegates):
         data = top_delegates
         del_150k_xas = open('config/delegate_150k_xas.txt', 'r').readlines()
         nsf = []    # 余额不足5万XAS(not sufficient funds)受托人账户列表
@@ -78,7 +124,8 @@ class Monitor:
                             nsf.append(res)
         return nsf
 
-    def send_mail(self, content):
+    @staticmethod
+    def send_mail(content):
         sub = 'asch_monitor'
         return send_mail(mailto_list, sub, content)
 
@@ -90,12 +137,22 @@ def main():
     logfile = "logs/%s_%s.log" % (logname, now)
     mp = MyPrint(logfile)
     monitor = Monitor()
+    check_top100_balance = monitor.check_peers()
+    print check_top100_balance
     top_delegates = monitor.get_top_101()
     check_balance = monitor.check_balance(top_delegates)
     check_block_produce = monitor.check_time_batch(top_delegates)
 
     time_end = time.time()
     time_excute = time_end - time_start
+
+    if len(check_top100_balance) == 1:       # 节点ip的前100名用户余额和官方节点不一致
+        mp.my_print(check_top100_balance)
+    else:
+        mp.my_print(["The following peer's balance of top100  is different with mainnet.asch.so."])
+        for i in check_top100_balance:
+            mp.my_print(i)
+    mp.my_print([''])
 
     if len(check_block_produce) > 0:        # 丢块的受托人
         mp.my_print(["The following delegates are missing block:"])
@@ -117,7 +174,7 @@ def main():
 
     mp.my_print(['time_excute_seconds:', str(int(time_excute))])
 
-    if len(check_block_produce) > 0 or len(check_balance) > 0:
+    if len(check_block_produce) > 0 or len(check_balance) > 0 or len(check_top100_balance) >= 1:
         content = ''
         lines = open(logfile, 'r').readlines()
         for i in lines:
