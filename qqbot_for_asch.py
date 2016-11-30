@@ -2,6 +2,7 @@
 # coding:utf-8
 
 from qqbot import QQBot
+from lib.accounts import Accounts
 from lib.blocks import Blocks
 from lib.delegates import Delegates
 from monitor import Monitor
@@ -11,9 +12,10 @@ import json
 
 class AschQQBot(QQBot):
     dsp = '请给受托人zhenxi投票，非常感谢。本广告位租赁价格：100XAS/天'
-
-    def __init__(self):
-        pass
+    delegates = Delegates()
+    accounts = Accounts()
+    blocks = Blocks()
+    mt = Monitor()
 
     def onPollComplete(self, msgtype, from_uin, buddy_uin, message):
         if message.find('@Asch小妹') == 0:
@@ -21,6 +23,8 @@ class AschQQBot(QQBot):
                 res = self.price()
             elif message.find('@Asch小妹 delegate') == 0:
                 res = self.delegate(message)
+            elif message.find('@Asch小妹 balance') == 0:
+                res = self.balance(message)
             elif message == '@Asch小妹 getheight':
                 res = self.getheight()
             elif message == '@Asch小妹 info':
@@ -64,23 +68,24 @@ class AschQQBot(QQBot):
         if len(m_li) == 3:
             delegate_name = m_li[2].strip()
             payload = {'username': delegate_name}
-            dres = Delegates().get_info(payload)
+            dres = self.delegates.get_info(payload)
             if dres['success']:
                 delegate = dres['delegate']
                 pubkey = delegate['publicKey']
-                mt = Monitor()
-                data = mt.check_block(pubkey)
+                address = delegate['address']
+                balance = self.get_balance(address)
+                data = self.mt.check_block(pubkey)
                 if data['success']:
                     if len(data['blocks']) > 0:
                         last_block_time = data['blocks'][0]['timestamp']
                         # 这个是自asch主链创世块生成时间以来经历的秒数
-                        difftime = str(mt.check_time(last_block_time) / 60) + '分钟之前'
+                        difftime = str(self.mt.check_time(last_block_time) / 60) + '分钟之前'
                     else:
                         # print "warings:api返回成功但貌似没有数据 or not top101", data
                         difftime = '非前101名，不产块'
                 res = ['受托人：' + delegate_name, '排名：' + str(delegate['rate']), '生产率：' +
-                       str(delegate['productivity']), '锻造总额：' + str(delegate['rewards'] / 10 ** 8) + ' XAS',
-                       '最后出块时间：' + difftime]
+                       str(delegate['productivity']), '锻造总额：' + str(delegate['rewards'] / 10 ** 8) + 'XAS',
+                       '账户余额：' + str(balance) + 'XAS', '最后出块时间：' + difftime]
             else:
                 res = ['受托人' + delegate_name + '不存在']
             res.append(self.dsp)
@@ -89,14 +94,38 @@ class AschQQBot(QQBot):
             res = self.usage()
         return str(res)
 
-    @staticmethod
-    def getheight():
-        res = Blocks().get_height()
+    def getheight(self):
+        res = self.blocks.get_height()
         if res['success']:
             height = res['height']
         else:
             height = None
         return '当前区块高度为：' + str(height)
+
+    def get_balance(self, address):
+        payload = {'address': address}
+        rs = self.accounts.balance(payload)
+        if rs['success']:
+            balance = round(rs['balance']/10**8, 1)
+        else:
+            balance = '查询出错'
+        return balance
+
+    def balance(self, message):
+        m_li = message.split()
+        # ['Asch小妹','balance','top101_delegates']
+        if len(m_li) == 3:
+            address = m_li[2].strip()
+            if address == 'top101_delegates':
+                pass
+            elif address.isdigit():
+                balance = self.get_balance(address)
+                res = address + '余额为：' + str(balance) + 'XAS'
+            else:
+                res = self.usage()
+        else:
+            res = self.usage()
+        return res
 
     @staticmethod
     def info():
