@@ -174,7 +174,7 @@ def main():
 
     mp.my_print(['time_excute_seconds:', str(int(time_excute))])
 
-    if len(check_block_produce) > 0 or len(check_balance) > 0 or len(check_top100_balance) >= 1:
+    if len(check_block_produce) > 0 or len(check_balance) > 0 or len(check_top100_balance) > 1:
         content = ''
         lines = open(logfile, 'r').readlines()
         for i in lines:
