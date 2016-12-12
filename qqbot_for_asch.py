@@ -1,5 +1,6 @@
 #!/bin/env python
 # coding:utf-8
+# at least python 2.7.9
 
 from qqbot import QQBot
 from lib.accounts import Accounts
@@ -39,8 +40,8 @@ class AschQQBot(QQBot):
     @staticmethod
     def get_price(host, coin):
         url = host + '/api/v1/ticker?coin=' + coin
-        res = json.loads(requests.get(url, verify=False).text)
-        # https not verify CA
+        res = json.loads(requests.get(url).text)
+        # https not verify CA python 2.7.9 SNI
         return res
 
     def price(self):
