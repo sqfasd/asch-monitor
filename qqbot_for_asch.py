@@ -3,6 +3,7 @@
 # at least python 2.7.9
 
 from qqbot import QQBot
+from lib.http_api import HttpApi
 from lib.accounts import Accounts
 from lib.blocks import Blocks
 from lib.delegates import Delegates
@@ -17,6 +18,8 @@ class AschQQBot(QQBot):
     accounts = Accounts()
     blocks = Blocks()
     mt = Monitor()
+    httpapi = HttpApi()
+    headers = {'content-type': 'application/json'}
 
     def onPollComplete(self, msgtype, from_uin, buddy_uin, message):
         if message.find('@Asch小妹') == 0:
@@ -28,8 +31,8 @@ class AschQQBot(QQBot):
                 res = self.balance(message)
             elif message == '@Asch小妹 getheight':
                 res = self.getheight(message)
-            elif message == '@Asch小妹 gettestcoin':
-                res = self.gettestcoin()
+            elif message.find('@Asch小妹 gettestcoin') == 0:
+                res = self.gettestcoin(message)
             elif message == '@Asch小妹 info':
                 res = self.info()
             elif message == "@Asch小妹 help":
@@ -106,12 +109,22 @@ class AschQQBot(QQBot):
         return '当前区块高度为：' + str(height)
 
     def gettestcoin(self, message):
-		pass
 		m_li = message.split()
         # ['Asch小妹','delegate','1111']
+		info = '用法:@Asch小妹 gettestcoin Asch地址'
 		if len(m_li) == 3:
 			addr = m_li[2].strip()
-			payload = {'username': addr}
+			secret = "lounge barrel episode lock bounce power club boring slush disorder cluster client"
+			amount = 500 * 10**8
+			payload = {"secret":secret,"amount":amount,"recipientId": addr}
+			api = "http://45.32.248.33:4096/api/transactions"
+			rs = json.loads(requests.put(api, data=json.dumps(payload), headers=self.headers).text)
+			print rs
+        	if rs['success']:
+				info = '成功给%s转账500 XAS。\n测试地址为：http://45.32.248.33:4096' % addr
+        	else:
+				info = '转账失败.报错信息:%s' % str(rs)
+		return info
 
     def get_balance(self, address):
         payload = {'address': address}
@@ -159,7 +172,8 @@ class AschQQBot(QQBot):
          2、delegate 受托人名字，查询受托人的出块情况
          3、getheight，查询当前区块链高度
          4、info，asch相关介绍，如官网、github等
-         5、help，查看Asch小妹的功能列表
+		 5、gettestcoin 地址，申请测试币(500 XAS)
+         6、help，查看Asch小妹的功能列表
 
          举例：@Asch小妹 price，可以获取到XAS当前的价格
          '''
