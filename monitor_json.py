@@ -12,7 +12,7 @@ from lib.mail import *
 class Monitor:
     """
     1.监控top101受托人的丢块信息，超过50分钟未出块视为丢块
-    2.监控top101受托人的XAS余额，不足50000的要报警,已剔除官方账号asch_gxx done
+    2.监控top101受托人的XAS余额，不足50000或者150000的要报警,已剔除官方账号asch_gxx done
     3.监控top101受托人节点记录的账户余额top100的信息是否一致（随机抽取2个节点在整点的时候进行对比，时间对10取模为0）
     """
     def __init__(self):
@@ -33,7 +33,8 @@ class Monitor:
                    }
         return self.blocks.get_blocks(payload)
 
-    def check_time(self, last_block_time):
+    @staticmethod
+    def check_time(last_block_time):
         now = int(time.time()) - 1467057600
         # UTC+8时区-asch创世块生成时间，即asch纪元元年0点(2016/6/28 4:0:0，js时间为UTC(2016, 5, 27, 20, 0, 0, 0) )
         difftime = now - last_block_time
@@ -60,7 +61,8 @@ class Monitor:
                     print "api返回成功但貌似没有数据", data
         return issuse_delegates
 
-    def check_balance(self, top_delegates):
+    @staticmethod
+    def check_balance(top_delegates):
         data = top_delegates
         nsf = []    # 余额不足5万XAS(not sufficient funds)受托人账户列表
         if data['success']:
@@ -71,7 +73,8 @@ class Monitor:
                         nsf.append(res)
         return nsf
 
-    def send_main(self, content):
+    @staticmethod
+    def send_main(content):
         sub = 'asch_monitor'
         return send_mail(mailto_list, sub, content)
 

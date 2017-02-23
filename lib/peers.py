@@ -34,4 +34,3 @@ if __name__ == '__main__':
     peers = Peers()
     all_peers = peers.peers('')
     print all_peers
-

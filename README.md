@@ -2,8 +2,11 @@
 ## 运行坏境搭建
 
 ```
-python 2.7及其依赖安装
+python 2.7.9(最低版本)及其依赖安装
 sudo apt-get install python pip
+sudo add-apt-repository ppa:fkrull/deadsnakes-python2.7
+sudo apt-get update  
+sudo apt-get upgrade
 pip install requests
 ```
 
