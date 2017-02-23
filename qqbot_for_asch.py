@@ -106,11 +106,12 @@ class AschQQBot(QQBot):
         return '当前区块高度为：' + str(height)
 
     def gettestcoin(self, message):
-        m_li = message.split()
+		pass
+		m_li = message.split()
         # ['Asch小妹','delegate','1111']
-        if len(m_li) == 3:
-            addr = m_li[2].strip()
-            payload = {'username': addr}
+		if len(m_li) == 3:
+			addr = m_li[2].strip()
+			payload = {'username': addr}
 
     def get_balance(self, address):
         payload = {'address': address}
